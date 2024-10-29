@@ -1,0 +1,31 @@
+import numpy as np 
+import cv2
+
+image=cv2.imread("images\shapes.jpg")
+#kernel identity
+kernel_mat=np.array([0,0,0,0,1,0,0,0,0])
+identity=cv2.filter2D(image,ddepth=-1,kernel=kernel_mat)
+cv2.imshow("org image",image)
+cv2.imshow("identity image",identity)
+
+#blur image
+kernel_blur=np.ones((5,5),np.float32)/25
+blur_img=cv2.filter2D(image,ddepth=-1,kernel=kernel_blur)
+cv2.imshow("blur image",blur_img)
+
+#inbuilt blur function
+img_blur = cv2.blur(image, ksize=(5,5))
+cv2.imshow("blur function image",img_blur)
+
+gaussian_blur = cv2.GaussianBlur(src=image, ksize=(5,5), sigmaX=0, sigmaY=0)
+cv2.imshow('Gaussian Blurred', gaussian_blur)
+
+median = cv2.medianBlur(src=image, ksize=5)
+cv2.imshow('Median Blurred', median)
+
+kernel3 = np.array([[0, -1,  0],
+                   [-1,  5, -1],
+                    [0, -1,  0]])
+sharp_img = cv2.filter2D(src=image, ddepth=-1, kernel=kernel3)
+cv2.imshow('Sharpened', sharp_img)
+cv2.waitKey(0)
