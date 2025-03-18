@@ -1,7 +1,7 @@
 import cv2 
 import numpy as np
 
-image=cv2.imread("images\\img.jpg",flags=0)
+image=cv2.imread("C:\\Users\\User\\python files\\images\\img.jpg",flags=0)
 img_blur = cv2.GaussianBlur(image,(3,3), 0) 
 sobelx = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5) # Sobel Edge Detection on the X axis
 sobely = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5) # Sobel Edge Detection on the Y axis

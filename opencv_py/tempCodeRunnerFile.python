@@ -1,0 +1,2 @@
+processed_image_path = "/mnt/data/processed_image.png"
+# cv2.imwrite(processed_image_path, morphed)

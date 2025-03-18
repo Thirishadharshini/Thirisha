@@ -1,0 +1,17 @@
+import tensorflow as tf 
+node = tf.Variable(tf.zeros([2,2]))
+
+# Evaluating the node before addition
+print("Tensor value before addition:\n", node.numpy())
+
+# Elementwise addition to tensor
+node.assign(node + tf.ones([2, 2]))
+
+# Evaluating the node after addition
+print("Tensor value after addition:\n", node.numpy())
+
+a = tf.placeholder(tf.int32, shape=(3,1))
+b = tf.placeholder(tf.int32, shape=(1,3))
+c = tf.matmul(a,b)
+ 
+print(c, feed_dict={a:[[3],[2],[1]], b:[[1,2,3]]})

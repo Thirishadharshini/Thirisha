@@ -1,0 +1,100 @@
+import cv2
+import cv2.version
+import numpy as np
+import os
+
+# Load the image             
+image_path = r"C:/office works/Text extraction/image(19).png"
+img = cv2.imread(image_path)
+print(cv2.__version__)
+
+if img is None:
+    print("Error: Could not load image!")
+    exit()
+
+img = img * 1.1  # Increase brightness
+img = np.clip(img, 0, 255).astype(np.uint8)
+
+# Apply Gaussian blur
+blur = cv2.GaussianBlur(img, (3, 3), 6)
+
+# Convert to grayscale
+gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY)
+
+# Adaptive Threshold
+thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                               cv2.THRESH_BINARY, 25, 17)
+
+# Find contours
+contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+mask = np.zeros(img.shape[:2], dtype=np.uint8)
+cropped = None
+
+for contour in contours:
+    area = cv2.contourArea(contour)
+    if 830000 < area < 850000:
+        center, radius = cv2.minEnclosingCircle(contour)
+        center = tuple(map(int, center))
+        radius = int(radius)
+
+        cv2.circle(mask, center, radius, 255, -1)
+
+        result = cv2.bitwise_and(img, img, mask=mask)
+
+        x, y, w, h = int(center[0] - radius), int(center[1] - radius), int(2 * radius), int(2 * radius)
+        bounding_box = (max(x, 0), max(y, 0), min(w, img.shape[1] - x), min(h, img.shape[0] - y))
+        x, y, w, h = bounding_box
+        cropped = result[y:y + h, x:x + w]
+
+        cv2.imshow("Cropped Circle", cropped)
+
+if cropped is None:
+    print("No suitable contour found.")
+    exit()
+
+# Convert cropped image to grayscale
+cropped_gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
+
+# Adaptive threshold for text detection
+binary = cv2.adaptiveThreshold(cropped_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                               cv2.THRESH_BINARY, 11, 7)
+cv2.imshow("Thresholded", binary)
+
+# Find contours of text regions
+contours_1, _ = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+blank = np.zeros(cropped.shape[:2], dtype=np.uint8)
+
+for contour in contours_1:
+    area = cv2.contourArea(contour)
+    if 300 < area < 10000:
+        cv2.drawContours(blank, [contour], -1, 255, 2)
+        print("Contour area:", area)
+        cv2.imshow("Contours", blank)
+        cv2.waitKey(0)
+
+# Apply dilation to enhance detected text regions
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+dilated = cv2.dilate(blank, kernel, iterations=2)
+cv2.imshow("Dilated", dilated)
+
+# Find contours in the dilated image
+contours1, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+
+save_dir = r"C:/office works/"
+os.makedirs(save_dir, exist_ok=True)
+
+for i, contour in enumerate(contours1):
+    area = cv2.contourArea(contour)
+    if area > 6000:                             
+        print("Contour area of text:", area)
+        cv2.drawContours(cropped, [contour], -1, (255, 0, 0), cv2.FILLED)
+
+        x, y, w, h = cv2.boundingRect(contour)
+        cropped_text = cropped_gray[y:y + h, x:x + w]
+
+        cv2.imshow("Cropped Text", cropped_text)
+        save_path = os.path.join(save_dir, f"cropped_text_{i}.png")
+        # cv2.imwrite(save_path, cropped_text)
+        cv2.waitKey(0)
+
+cv2.destroyAllWindows()
